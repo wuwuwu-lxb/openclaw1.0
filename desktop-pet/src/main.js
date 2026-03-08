@@ -100,6 +100,27 @@ function setupIPC() {
   ipcMain.handle('hide-window', () => {
     mainWindow.hide();
   });
+
+  ipcMain.handle('check-connection', async () => {
+    try {
+      await axios.post(API_URL, {
+        model: 'openclaw',
+        messages: [{ role: 'user', content: 'ping' }],
+        max_tokens: 1,
+        user: USER_ID
+      }, {
+        headers: {
+          'Authorization': `Bearer ${TOKEN}`,
+          'Content-Type': 'application/json',
+          'x-openclaw-agent-id': 'main'
+        },
+        timeout: 5000
+      });
+      return { connected: true };
+    } catch (err) {
+      return { connected: false, error: err.message };
+    }
+  });
 }
 
 // ============ 应用生命周期 ============
