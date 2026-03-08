@@ -5,7 +5,7 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron . --no-sandbox",
-    "dev": "electron . --no-sandbox"
+    "dev": "electron . --no-sandbox --dev-tools"
   },
   "keywords": [
     "electron",

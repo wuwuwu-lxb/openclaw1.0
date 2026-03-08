@@ -31,8 +31,10 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
   
-  // 开发模式打开 DevTools
-  // mainWindow.webContents.openDevTools();
+  // 开发模式打开 DevTools（npm run dev 时自动打开）
+  if (process.argv.includes('--dev-tools')) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  }
 }
 
 // ============ 系统托盘 ============

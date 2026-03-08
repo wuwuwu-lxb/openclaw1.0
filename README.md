@@ -48,11 +48,18 @@
 
 ## 🚀 快速开始
 
+### 新手？从这里开始
+
+👉 **[本地测试完整指南（新手版）](desktop-pet/QUICKSTART.md)**  
+包含 Node.js 安装、依赖安装、OpenClaw 连接、DevTools 调试的每步细节。
+
 ### 启动桌面宠物
 ```bash
 cd desktop-pet
 npm install
-npm start
+npm start          # 正式模式
+# 或
+npm run dev        # 开发模式（自动打开 DevTools）
 ```
 
 ### OpenClaw 配置
