@@ -58,7 +58,7 @@ async function initLive2D() {
     app = new PIXI.Application({
       width: 300,
       height: 400,
-      backgroundAlpha: 0,
+      transparent: true,
       antialias: true
     });
 
