@@ -1,0 +1,5 @@
+node_modules/
+
+# Downloaded third-party libraries (run `sh scripts/download-libs.sh` to populate)
+lib/pixi.min.js
+lib/live2dcubismcore.min.js

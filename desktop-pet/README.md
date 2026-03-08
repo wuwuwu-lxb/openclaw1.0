@@ -18,6 +18,22 @@ cd ~/.openclaw/workspace/desktop-pet
 cnpm install
 ```
 
+`npm install` 会自动运行 `scripts/download-libs.sh`，尝试下载以下依赖到 `lib/` 目录：
+
+| 文件 | 说明 |
+|------|------|
+| `lib/pixi.min.js` | PixiJS v6.5.10（需要从 CDN 下载） |
+| `lib/live2dcubismcore.min.js` | Live2D Cubism Core SDK（需要从官网下载） |
+| `lib/pixi-live2d-display.min.js` | pixi-live2d-display（已包含在 npm 包中） |
+
+如果自动下载失败（如网络问题），请手动执行：
+
+```bash
+sh scripts/download-libs.sh
+```
+
+或参考 `lib/README.md` 手动下载文件。
+
 ## 🚀 启动
 
 ```bash
@@ -69,6 +85,13 @@ desktop-pet/
 │   ├── shizuku.cdi3.json
 │   ├── shizuku.1024/    # 贴图目录
 │   └── motion/          # 动作文件
+├── lib/                 # 第三方库（本地化，避免 CDN 依赖）
+│   ├── pixi.min.js               # PixiJS v6（运行 download-libs.sh 获取）
+│   ├── live2dcubismcore.min.js   # Live2D Cubism Core（运行 download-libs.sh 获取）
+│   ├── pixi-live2d-display.min.js # pixi-live2d-display（npm install 后自动复制）
+│   └── README.md                 # 如何手动获取各文件的说明
+├── scripts/
+│   └── download-libs.sh # 自动下载依赖脚本（postinstall 自动调用）
 ├── package.json
 └── README.md
 ```
