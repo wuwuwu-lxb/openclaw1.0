@@ -31,7 +31,7 @@ async function initLive2D() {
 
   await new Promise((resolve) => {
     const check = setInterval(() => {
-      if (window.PIXI && window.Live2DModel) {
+      if (window.PIXI && window.PIXI.live2d && window.PIXI.live2d.Live2DModel) {
         clearInterval(check);
         resolve();
       } else {
@@ -44,10 +44,12 @@ async function initLive2D() {
     }, interval);
   });
   
-  if (!window.PIXI || !window.Live2DModel) {
+  if (!window.PIXI || !window.PIXI.live2d || !window.PIXI.live2d.Live2DModel) {
     console.warn('⚠️ PixiJS 或 Live2DModel 未加载，跳过 Live2D');
     return;
   }
+
+  const Live2DModel = PIXI.live2d.Live2DModel;
 
   try {
     console.log('🎭 初始化 Live2D...');
@@ -56,7 +58,6 @@ async function initLive2D() {
     app = new PIXI.Application({
       width: 300,
       height: 400,
-      transparent: true,
       backgroundAlpha: 0,
       antialias: true
     });
@@ -71,7 +72,7 @@ async function initLive2D() {
     // 加载模型
     console.log('🎭 加载模型:', MODEL_PATH);
     
-    window.Live2DModel.from(MODEL_PATH, {
+    Live2DModel.from(MODEL_PATH, {
       autoInteract: true,
     }).then(model => {
       live2dModel = model;
