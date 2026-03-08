@@ -61,8 +61,14 @@ desktop-pet/
 │   ├── preload.js       # 安全桥接
 │   ├── renderer.js      # UI + Live2D 逻辑
 │   └── index.html       # 界面
-├── assets/live2d/       # Live2D 模型
-│   └── shizuku/
+├── assets/live2d/       # Live2D 模型（直接放在此目录）
+│   ├── shizuku.model3.json
+│   ├── shizuku.moc3
+│   ├── shizuku.physics3.json
+│   ├── shizuku.pose3.json
+│   ├── shizuku.cdi3.json
+│   ├── shizuku.1024/    # 贴图目录
+│   └── motion/          # 动作文件
 ├── package.json
 └── README.md
 ```

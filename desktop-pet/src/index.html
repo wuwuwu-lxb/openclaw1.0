@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cubism.live2d.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cubism.live2d.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: https://cubism.live2d.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cubism.live2d.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file:;">
   <title>桌面宠物</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -138,6 +138,26 @@
     .messages::-webkit-scrollbar { width: 6px; }
     .messages::-webkit-scrollbar-track { background: transparent; }
     .messages::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 3px; }
+    .message.typing {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 16px;
+    }
+    .message.typing span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #aaa;
+      display: inline-block;
+      animation: typing-bounce 1.2s infinite ease-in-out;
+    }
+    .message.typing span:nth-child(2) { animation-delay: 0.2s; }
+    .message.typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing-bounce {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>

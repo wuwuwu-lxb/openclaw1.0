@@ -1,5 +1,5 @@
 // ============ Live2D 配置 ============
-const MODEL_PATH = 'assets/live2d/shizuku.model3.json';
+const MODEL_PATH = '../assets/live2d/shizuku.model3.json';
 
 // ============ DOM 元素 ============
 const messagesEl = document.getElementById('messages');
@@ -13,13 +13,39 @@ const live2dContainer = document.getElementById('live2d-container');
 // ============ Live2D 初始化 ============
 let app;
 let live2dModel;
+let idleTimer = null;
+
+function startIdleLoop() {
+  if (!live2dModel) return;
+  live2dModel.motion('Idle');
+  idleTimer = setInterval(() => {
+    if (live2dModel) live2dModel.motion('Idle');
+  }, 8000);
+}
 
 async function initLive2D() {
-  // 等待库加载
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  // 轮询等待 PixiJS 和 Live2DModel 库加载完成（最多等待 10 秒）
+  const maxWait = 10000;
+  const interval = 200;
+  let elapsed = 0;
+
+  await new Promise((resolve) => {
+    const check = setInterval(() => {
+      if (window.PIXI && window.Live2DModel) {
+        clearInterval(check);
+        resolve();
+      } else {
+        elapsed += interval;
+        if (elapsed >= maxWait) {
+          clearInterval(check);
+          resolve();
+        }
+      }
+    }, interval);
+  });
   
   if (!window.PIXI || !window.Live2DModel) {
-    console.error('❌ PixiJS 或 Live2DModel 未加载');
+    console.warn('⚠️ PixiJS 或 Live2DModel 未加载，跳过 Live2D');
     return;
   }
 
@@ -34,6 +60,9 @@ async function initLive2D() {
       backgroundAlpha: 0,
       antialias: true
     });
+
+    // 启用画布的指针事件（覆盖父容器的 pointer-events: none）
+    app.view.style.pointerEvents = 'auto';
 
     if (live2dContainer) {
       live2dContainer.appendChild(app.view);
@@ -54,15 +83,24 @@ async function initLive2D() {
 
       app.stage.addChild(model);
 
-      // 点击交互
+      // 启动待机动画
+      startIdleLoop();
+
+      // HitArea 点击交互
       model.on('hit', (hitAreas) => {
         console.log('👆 点击:', hitAreas);
-        if (hitAreas.includes('Body')) {
-          model.motion('tap_body');
-        }
         if (hitAreas.includes('Head')) {
-          model.motion('tap_head');
+          model.motion('FlickUp');
+        } else if (hitAreas.includes('Body')) {
+          model.motion('Tap');
         }
+      });
+
+      // 备用：直接点击时触发随机动作
+      model.on('pointerdown', () => {
+        const motions = ['Tap', 'FlickUp', 'Flick3'];
+        const m = motions[Math.floor(Math.random() * motions.length)];
+        model.motion(m);
       });
 
       console.log('✅ Live2D 加载成功!');
@@ -82,6 +120,21 @@ function addMessage(text, type = 'system') {
   msgEl.textContent = text;
   messagesEl.appendChild(msgEl);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+  return msgEl;
+}
+
+function showTyping() {
+  const el = document.createElement('div');
+  el.className = 'message assistant typing';
+  el.id = 'typing-indicator';
+  el.innerHTML = '<span></span><span></span><span></span>';
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
 }
 
 async function sendMessage() {
@@ -92,19 +145,20 @@ async function sendMessage() {
   messageInput.value = '';
   sendBtn.disabled = true;
   
+  showTyping();
+  
   const result = await window.electronAPI.sendMessage(text);
+  
+  removeTyping();
   
   if (result.success) {
     addMessage(result.reply, 'assistant');
     
     if (live2dModel) {
-      live2dModel.expression('happy');
-      setTimeout(() => {
-        live2dModel.expression('neutral');
-      }, 2000);
+      live2dModel.motion('Tap');
     }
   } else {
-    addMessage(`错误：${result.error}`, 'system');
+    addMessage(`⚠️ ${result.error}`, 'system');
   }
   
   sendBtn.disabled = false;
@@ -120,9 +174,21 @@ minimizeBtn.addEventListener('click', () => window.electronAPI.minimizeWindow())
 closeBtn.addEventListener('click', () => window.electronAPI.hideWindow());
 
 // ============ 初始化 ============
-statusBar.textContent = '● 就绪';
-statusBar.className = 'status-bar connected';
-addMessage('桌面宠物已启动 🌸', 'system');
+statusBar.textContent = '● 检查连接...';
+statusBar.className = 'status-bar';
+addMessage('小唔已上线 🌸', 'system');
+
+// 检查 OpenClaw 连接状态
+window.electronAPI.checkConnection().then(result => {
+  if (result.connected) {
+    statusBar.textContent = '● 已连接 OpenClaw';
+    statusBar.className = 'status-bar connected';
+  } else {
+    statusBar.textContent = '● OpenClaw 未就绪';
+    statusBar.className = 'status-bar disconnected';
+    addMessage('⚠️ 无法连接到 OpenClaw，请确认网关已启动', 'system');
+  }
+});
 
 // 启动 Live2D
 initLive2D();
