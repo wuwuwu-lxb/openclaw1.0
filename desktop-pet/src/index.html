@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: blob:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file:; connect-src 'self' file: blob: http://127.0.0.1:*;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file: https://cubism.live2d.com; connect-src 'self' file: blob: http://127.0.0.1:* https://cubism.live2d.com;">
   <title>桌面宠物</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,14 +14,60 @@
       position: relative;
     }
     #live2d-container {
-      position: absolute;
-      top: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 300px;
-      height: 400px;
-      z-index: 10;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 200px;
+      height: 300px;
+      z-index: 100;
+      pointer-events: auto;
+      transition: transform 0.3s ease;
+    }
+    #live2d-container:hover {
+      transform: scale(1.05);
+    }
+    .live2d-hint {
+      position: fixed;
+      top: 370px;
+      right: 20px;
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.4);
+      background: rgba(255, 255, 255, 0.6);
+      padding: 4px 8px;
+      border-radius: 8px;
       pointer-events: none;
+      z-index: 99;
+    }
+    .interaction-menu {
+      position: fixed;
+      top: 60px;
+      right: 230px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 101;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .interaction-menu.show {
+      display: flex;
+    }
+    .interaction-menu button {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+      transition: background 0.2s;
+    }
+    .interaction-menu button:hover {
+      background: rgba(102, 126, 234, 0.1);
     }
     .drag-bar {
       height: 32px;
@@ -59,6 +105,7 @@
       border-radius: 0 0 16px 16px;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-top: none;
+      margin-right: 220px;
     }
     .messages {
       flex: 1;
@@ -162,6 +209,13 @@
 </head>
 <body>
   <div id="live2d-container"></div>
+  <div class="live2d-hint">✨ 点击我互动 ~</div>
+  <div class="interaction-menu" id="interactionMenu">
+    <button id="btnWave">👋 打招呼</button>
+    <button id="btnHappy">😊 开心</button>
+    <button id="btnSurprised">😮 惊讶</button>
+    <button id="btnShake">🌀 转圈圈</button>
+  </div>
   <div class="drag-bar">
     <div class="window-controls">
       <button class="window-btn btn-minimize" id="minimizeBtn"></button>
@@ -181,8 +235,10 @@
 
   <!-- PixiJS v6 (compatible with pixi-live2d-display) -->
   <script src="../lib/pixi.min.js"></script>
-  <!-- Live2D Cubism Core (see lib/README.md for download instructions) -->
+  <!-- Live2D Cubism Core -->
   <script src="../lib/live2dcubismcore.min.js"></script>
+  <!-- Live2D Cubism 2 runtime (required by pixi-live2d-display) -->
+  <script src="../lib/live2d.min.js"></script>
   <!-- pixi-live2d-display -->
   <script src="../lib/pixi-live2d-display.min.js"></script>
   

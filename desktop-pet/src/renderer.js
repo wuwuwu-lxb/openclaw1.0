@@ -51,6 +51,45 @@ const statusBar = document.getElementById('statusBar');
 const minimizeBtn = document.getElementById('minimizeBtn');
 const closeBtn = document.getElementById('closeBtn');
 const live2dContainer = document.getElementById('live2d-container');
+const interactionMenu = document.getElementById('interactionMenu');
+const btnWave = document.getElementById('btnWave');
+const btnHappy = document.getElementById('btnHappy');
+const btnSurprised = document.getElementById('btnSurprised');
+const btnShake = document.getElementById('btnShake');
+
+// ============ 互动功能 ============
+const INTERACTIONS = {
+  head: { motions: ['FlickUp'],    text: ['嘿嘿~', '好痒~', '再高点~'] },
+  body: { motions: ['Tap'],        text: ['嗯？', '在叫我吗~', '戳我干嘛~'] },
+  random: { motions: ['Flick3'],   text: ['哇~', '转圈圈~', '嘿嘿~'] },
+};
+
+// ============ 互动菜单 ============
+let menuTimeout = null;
+
+function showInteractionMenu() {
+  if (interactionMenu) {
+    interactionMenu.classList.add('show');
+    clearTimeout(menuTimeout);
+    menuTimeout = setTimeout(() => {
+      interactionMenu.classList.remove('show');
+    }, 5000);
+  }
+}
+
+function hideInteractionMenu() {
+  if (interactionMenu) {
+    interactionMenu.classList.remove('show');
+  }
+}
+
+function triggerMotion(motion, text) {
+  if (live2dModel) {
+    live2dModel.motion(motion);
+    addMessage(text, 'system');
+  }
+  hideInteractionMenu();
+}
 
 // ============ Live2D 初始化 ============
 let app;
@@ -146,10 +185,12 @@ async function initLive2D() {
     }).then(model => {
       live2dModel = model;
 
-      model.x = 50;
-      model.y = 80;
-      model.width = 200;
-      model.height = 300;
+      // 缩放模型以适应新位置
+      const scale = 0.8;
+      model.x = 20;
+      model.y = 40;
+      model.width = 160 * scale;
+      model.height = 240 * scale;
 
       app.stage.addChild(model);
 
@@ -165,19 +206,44 @@ async function initLive2D() {
       model.on('hit', (hitAreas) => {
         console.log('👆 点击:', hitAreas);
         if (hitAreas.includes('Head')) {
-          model.motion('FlickUp');
+          const motion = pickRandom(INTERACTIONS.head.motions);
+          model.motion(motion);
+          addMessage(pickRandom(INTERACTIONS.head.text), 'system');
         } else if (hitAreas.includes('Body')) {
-          model.motion('Tap');
+          const motion = pickRandom(INTERACTIONS.body.motions);
+          model.motion(motion);
+          addMessage(pickRandom(INTERACTIONS.body.text), 'system');
         }
       });
 
       // 直接点击时触发随机动作
       model.on('pointerdown', () => {
-        model.motion(pickRandom(['Tap', 'FlickUp', 'Flick3']));
+        const interaction = INTERACTIONS.random;
+        model.motion(pickRandom(interaction.motions));
+        addMessage(pickRandom(interaction.text), 'system');
+      });
+
+      // 双击触发特殊动作
+      let lastClickTime = 0;
+      model.on('pointerup', () => {
+        const now = Date.now();
+        if (now - lastClickTime < 300) {
+          model.motion('Flick3');
+          addMessage('哇！好开心~', 'system');
+        }
+        lastClickTime = now;
       });
 
       // 启用手动交互（pointerdown/pointerup/pointermove）
       model.interactive = true;
+
+      // 悬停效果
+      model.on('pointerover', () => {
+        document.body.style.cursor = 'pointer';
+      });
+      model.on('pointerout', () => {
+        document.body.style.cursor = 'default';
+      });
 
       console.log('✅ Live2D 加载成功!');
     }).catch(err => {
@@ -249,6 +315,25 @@ messageInput.addEventListener('keypress', (e) => {
 });
 minimizeBtn.addEventListener('click', () => window.electronAPI.minimizeWindow());
 closeBtn.addEventListener('click', () => window.electronAPI.hideWindow());
+
+// 互动菜单事件
+if (live2dContainer) {
+  live2dContainer.addEventListener('mouseenter', showInteractionMenu);
+  live2dContainer.addEventListener('mouseleave', hideInteractionMenu);
+}
+
+if (btnWave) {
+  btnWave.addEventListener('click', () => triggerMotion('Tap', '👋 你好呀~'));
+}
+if (btnHappy) {
+  btnHappy.addEventListener('click', () => triggerMotion('FlickUp', '😊 好开心~'));
+}
+if (btnSurprised) {
+  btnSurprised.addEventListener('click', () => triggerMotion('FlickUp', '😮 哇！'));
+}
+if (btnShake) {
+  btnShake.addEventListener('click', () => triggerMotion('Flick3', '🌀 转圈圈~'));
+}
 
 // ============ 初始化 ============
 statusBar.textContent = '● 检查连接...';

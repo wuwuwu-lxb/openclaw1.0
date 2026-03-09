@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const axios = require('axios');
 
@@ -32,7 +32,7 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
   
   // 开发模式打开 DevTools
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 }
 
 // ============ 系统托盘 ============
@@ -88,38 +88,31 @@ async function sendMessageToOpenClaw(text) {
 
 // ============ IPC 处理 ============
 function setupIPC() {
+  // 发送消息
   ipcMain.handle('send-message', async (event, text) => {
     const result = await sendMessageToOpenClaw(text);
     return result;
   });
   
+  // 检查连接
+  ipcMain.handle('check-connection', async () => {
+    try {
+      await axios.get(API_URL.replace('/v1/chat/completions', '/'), {
+        timeout: 3000
+      });
+      return { connected: true };
+    } catch {
+      return { connected: false };
+    }
+  });
+  
+  // 窗口控制
   ipcMain.handle('minimize-window', () => {
     mainWindow.minimize();
   });
   
   ipcMain.handle('hide-window', () => {
     mainWindow.hide();
-  });
-
-  ipcMain.handle('check-connection', async () => {
-    try {
-      await axios.post(API_URL, {
-        model: 'openclaw',
-        messages: [{ role: 'user', content: 'ping' }],
-        max_tokens: 1,
-        user: USER_ID
-      }, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`,
-          'Content-Type': 'application/json',
-          'x-openclaw-agent-id': 'main'
-        },
-        timeout: 5000
-      });
-      return { connected: true };
-    } catch (err) {
-      return { connected: false, error: err.message };
-    }
   });
 }
 
